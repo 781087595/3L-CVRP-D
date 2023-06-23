@@ -1,21 +1,4 @@
-# 6-13,20:20修改后进先出约束
-# model.addConstr(propto[i, k] - propto[j, k] >= l[j-1] - M * eta[1, i, j, k])
-# model.addConstr(beta[i, k] - beta[j, k] >= w[j-1] - M * eta[2, i, j, k])
-# model.addConstr(gamma[i, k] - gamma[j, k] >= h[j-1] - M * eta[3, i, j, k])
-# model.addConstr(gp.quicksum(eta[f, i, j, k] for f in range(1, 4)) <= 2 + (1 - x[i, j, k]))
 
-# 6-14 11:00 修改了上限，加快求解速度
-# propto = model.addVars([(i, k) for i in C for k in V], lb=0, ub=L-np.min(l), vtype=GRB.CONTINUOUS)
-# beta = model.addVars([(i, k) for i in C for k in V], lb=0, ub=W-np.min(w), vtype=GRB.CONTINUOUS)
-# gamma = model.addVars([(i, k) for i in C for k in V], lb=0, ub=H-np.min(h), vtype=GRB.CONTINUOUS)
-
-# 6-14 13:01 修改上限 --求解速度没改进--14:11改回去
-# x1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, ub=L,  vtype=GRB.CONTINUOUS)
-# x2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, ub=L-np.min(l),  vtype=GRB.CONTINUOUS)
-# y1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, ub=W,  vtype=GRB.CONTINUOUS)
-# y2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, ub=W-np.min(w),  vtype=GRB.CONTINUOUS)
-# new_propto = model.addVars([(i, k) for i in C for k in V], lb=0, ub=L,  vtype=GRB.CONTINUOUS)
-# new_beta = model.addVars([(i, k) for i in C for k in V], lb=0, ub=W,  vtype=GRB.CONTINUOUS)
 
 
 
@@ -681,61 +664,6 @@ if model.status == GRB.OPTIMAL:
                             route2.append((i, m, j))
         print(f"Route: {route2}")
 
-        for i in C:
-            if S[i, k].x > 0.5:
-                coordinate.append((i, k, propto[i, k].x, beta[i, k].x, gamma[i, k].x))
-
-            for j in C:
-                if j != i:
-                    area_1.append((i, j, k, if_gamma[i, j, k].x, area[i, j, k].x))
-                    area_2.append((i, j, k, if_gamma[i, j, k].x, area2[i, j, k].x))
-                    if_g.append((i, j, k, if_gamma[i, j, k].x))
-
-
-# 包裹的三维尺寸
-print(f"包裹的三维尺寸：")
-print([(l[i], w[i], h[i]) for i in range(n)])
-# 包裹的坐标
-print(f"包裹的坐标: {coordinate}")
-
-# 画图
-# goods_dimensions = [[],[]]
-goods_dimensions = [[] for _ in range(z)]
-
-for elem in coordinate:
-    for k in V:
-        if elem[1] == k:
-            goods_dimensions[k-1].append((l[elem[0]-1], w[elem[0]-1], h[elem[0]-1]))
-
-# print(goods_dimensions)
-
-
-if model.status == GRB.OPTIMAL:
-    for k in V:
-        print(k)
-        draw_packing_result(L, W, H, goods_dimensions[k-1], [elem[-3:] for elem in coordinate if elem[1] == k], k)
-
-
-print(t)
-print(t_prime)
-print(q)        
-
-# 通过下面的检查出了错误
-# print(f"if_gamma0[7, 2] = {if_gamma0[7, 2].x}")
-# print(f"S[7, 2] = {S[7, 2].x}")
-# for j in C:
-#     if j != 7:
-#         print(f"area[7, {j}, 2] = {area[7, j, 2].x}")
-#         print(f"area2[7, {j}, 2] = {area2[7, j, 2].x}")
-#         print(f"if_gamma[7, {j}, 2] = {if_gamma[7, j, 2].x}")
-    
-#     if j == 5:
-#         print(f"x1[7, 5, 2] = {x1[7, 5, 2].x}")
-#         print(f"x2[7, 5, 2] = {x2[7, 5, 2].x}")
-#         print(f"y1[7, 5, 2] = {y1[7, 5, 2].x}")
-#         print(f"y2[7, 5, 2] = {y2[7, 5, 2].x}")
-#         print(f"area_l[7, 5, 2] = {area_l[7, 5, 2].x}")
-#         print(f"area_w[7, 5, 2] = {area_w[7, 5, 2].x}")
 
 # print(f"eta[1, 4, 5, 2].x = {eta[1, 4, 5, 2].x}")
 # print(f"eta[2, 4, 5, 2].x = {eta[2, 4, 5, 2].x}")
