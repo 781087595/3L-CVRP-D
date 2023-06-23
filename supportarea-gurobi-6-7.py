@@ -645,22 +645,3 @@ if model.status == GRB.OPTIMAL:
                             route2.append((i, m, j))
         print(f"Route: {route2}")
 
-        for i in C:
-            if S[i, k].x > 0.5:
-                coordinate.append((i, k, propto[i, k].x, beta[i, k].x, gamma[i, k].x))
-
-# 包裹的三维尺寸
-print(f"包裹的三维尺寸：")
-print([(l[i], w[i], h[i]) for i in range(n)])
-# 包裹的坐标
-print(f"包裹的坐标: {coordinate}")
-
-# 画图
-goods_dimensions = []
-goods_positions = []
-for i in C:
-    goods_dimensions.append((l[i-1], w[i-1], h[i-1]))
-
-# for k in V:
-#     print(k)
-#     draw_packing_result(L, W, H, goods_dimensions, [elem[-3:] for elem in coordinate if elem[1] == k], k)
