@@ -50,19 +50,20 @@ T_bar = 30
 # q_i	load amount of package needed of customer i
 q = np.random.randint(low=2, high=7, size=n)
 # L,W,H	length, width, and height of carriage of truck
-L = 15
-W = 10
+L = 12
+W = 8
 H = 10
+
 # L^\prime,W^\prime,H^\prime	length, width, and height of carriage of drone
 L_prime = 4
 W_prime = 4
 H_prime = 4
 # l_i,w_i,h_i	length, width, and height of package needed of customer i
-l = np.random.randint(low=3, high=6, size=n)
-w = np.random.randint(low=3, high=6, size=n)
-h = np.random.randint(low=3, high=6, size=n)
+l = np.random.randint(low=3, high=5, size=n)
+w = np.random.randint(low=3, high=5, size=n)
+h = np.random.randint(low=3, high=5, size=n)
 # M	a large number
-M = 10000000
+M = 10000
 
 # 集合
 # N	set of all nodes, i,j\in{0,1,2,\cdots,n+1}
@@ -642,239 +643,83 @@ for k in V:
                             if i_ != i and i_ != m and i_ != j:
                                 model.addConstr(gp.quicksum(eta[f, i, j, k] for f in range(1, 4)) <= 2 + (2 - y[m, i, i_, k] - x[m, j, k]))
 # （18）不可悬空放置：
-# 尝试1：用python内置的函数min，max
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((min(propto[j, k] + l[j-1],propto[i,k] + l[i-1])-max(propto[j, k],propto[i,k]))
-#                             *(min(beta[j, k] + w[j],beta[i,k] + w[i])-max(beta[j, k],beta[i,k]))
-#                             for j in C if j != i and S[j, k] == 1) >= 0.75 * propto[i, k] * beta[i, k] - M * (1 - S[i, k]))
-# indicator
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((min(propto[j, k] + l[j-1],propto[i,k] + l[i-1])-max(propto[j, k],propto[i,k]))
-#                             *(min(beta[j, k] + w[j],beta[i,k] + w[i])-max(beta[j, k],beta[i,k]))
-#                             for j in C if j != i) >= 0.75 * propto[i, k] * beta[i, k] - M * (1 - S[i, k]))
-# 尝试2：用gp的函数min_,max_
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((gp.min_(propto[j, k] + l[j-1],propto[i,k] + l[i-1]) - gp.max_(propto[j, k],propto[i,k]))
-#                                     *(gp.min_(beta[j, k] + w[j-1],beta[i,k] + w[i-1])-gp.max_(beta[j, k],beta[i,k]))
-#                                     for j in C if j != i) >= 0.75 * propto[i, k] * beta[i, k] - M * (1 - S[i, k]))
-# x1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# x2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# y1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# y2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# new_propto = model.addVars([(i, k) for i in C for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# new_beta = model.addVars([(i, k) for i in C for k in V], lb=0, vtype=GRB.CONTINUOUS)
 
-# for k in V:
-#     for i in C:
-#         for j in C:
-#             if j != i:
-#                 model.addConstr(new_propto[i, k] == propto[i, k] + l[i - 1])
-#                 model.addConstr(x1[i, j, k] == gp.min_(new_propto[j, k], new_propto[i, k]))
-#                 model.addConstr(new_beta[i, k] == beta[i, k] + w[i - 1])
-#                 model.addConstr(y1[i, j, k] == gp.min_(new_beta[j, k], new_beta[i, k]))
-#                 model.addConstr(x2[i, j, k] == gp.max_(propto[j, k], propto[i, k]))
-#                 model.addConstr(y2[i, j, k] == gp.max_(beta[j, k], beta[i, k]))
-
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((x1[i, j, k]-x2[i, j, k])
-#                             *(y1[i, j, k]-y2[i, j, k]) 
-#                             for j in C if j != i 
-#                             and x1[i, j, k] >= x2[i, j, k] and y1[i, j, k] >= y2[i, j, k]) >= 0.75 * propto[i, k] * beta[i, k])   
-
-# # 尝试3：用辅助变量计算面积
-# # d1,d2,d3,d4辅助变量计算(x1,y1),(x2,y2)
 x1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 x2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 y1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 y2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-d1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-d2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-d3 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-d4 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-
-for k in V:
-    for i in C:
-        for j in C:
-            if j != i:
-                model.addConstr(x1[i, j, k] <= propto[i, k] + l[i-1])
-                model.addConstr(x1[i, j, k] <= propto[j, k] + l[j-1])
-                model.addConstr(x1[i, j, k] >= propto[i, k] + l[i-1] - M * (1-d1[i, j, k]))
-                model.addConstr(x1[i, j, k] >= propto[j, k] + l[j-1] - M * d1[i, j, k])
-                model.addConstr(x2[i, j, k] >= propto[i, k])
-                model.addConstr(x2[i, j, k] >= propto[j, k])
-                model.addConstr(x2[i, j, k] <= propto[i, k] + M * (1-d2[i, j, k]))
-                model.addConstr(x2[i, j, k] <= propto[j, k] + M * d2[i, j, k])
-
-                model.addConstr(y1[i, j, k] <= beta[i, k] + w[i-1])
-                model.addConstr(y1[i, j, k] <= beta[j, k] + w[j-1])
-                model.addConstr(y1[i, j, k] >= beta[i, k] + w[i-1] - M * (1- d3[i, j, k]))
-                model.addConstr(y1[i, j, k] >= beta[j, k] + w[j-1] - M * d3[i, j, k])
-                model.addConstr(y2[i, j, k] >= beta[i, k])
-                model.addConstr(y2[i, j, k] >= beta[j, k])
-                model.addConstr(y2[i, j, k] <= beta[i, k] + M * (1- d4[i, j, k]))
-                model.addConstr(y2[i, j, k] <= beta[j, k] + M * d4[i, j, k])
-
-# # 尝试3-1：提示非线性，添加model.setParam('NonConvex', 2)，可运行，缺少条件判断：是否是同一辆车装载，是否有接触面
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((x1[i, j, k]-x2[i, j, k])
-#                             *(y1[i, j, k]-y2[i, j, k]) 
-#                             for j in C if j != i) >= 0.75 * propto[i, k] * beta[i, k])
-        
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((x1[i, j, k]-x2[i, j, k])
-#                             *(y1[i, j, k]-y2[i, j, k]) 
-#                             for j in C if j != i and S[j, k] > 0.5) >= 0.75 * propto[i, k] * beta[i, k])     
-
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum((x1[i, j, k]-x2[i, j, k])
-#                             *(y1[i, j, k]-y2[i, j, k]) 
-#                             for j in C if j != i and S[j, k].x == 1) >= 0.75 * propto[i, k] * beta[i, k]) 
-
-# 这个可以运行，但是缺少判断是否在同一车厢，是否有支撑被支撑的关系
-# for k in V:
-#     for i in C:
-        # model.addConstr(gp.quicksum((x1[i, j, k]-x2[i, j, k])
-        #                     *(y1[i, j, k]-y2[i, j, k]) # * S[j, k]
-        #                     for j in C if j != i) >= 0.75 * propto[i, k] * beta[i, k])   
-
-
-# area = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-
-# # for k in V:
-# #     for i in C:
-# #         model.addConstr(area[i, j, k] == (x1[i, j, k]-x2[i, j, k]) * (y1[i, j, k]-y2[i, j, k]) for j in C if j != i)
-# #         model.addConstr(gp.quicksum(area * S[j, k] for j in C if j != i) >= 0.75 * propto[i, k] * beta[i, k])
-
-# # 添加辅助变量if_positive辅助判断是否为支撑被支撑关系
-# # 解决了只加正的支撑面积的问题，还有一个重要问题是判断是否在同一车厢
-# # 一分钟后，还是不对，忽略了负负得正
-# if_positive = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
-# for k in V:
-#     for i in C:
-#         for j in C:
-#             if j != i:
-#                 model.addConstr(area[i, j, k] <= M * if_positive[i, j, k])
-#                 model.addConstr(area[i, j, k] >= -M * (1- if_positive[i, j, k]))
-#                 model.addConstr(area[i, j, k] == (x1[i, j, k]-x2[i, j, k]) * (y1[i, j, k]-y2[i, j, k]))
-                
-# # for k in V:
-# #     for i in C:       
-# #         model.addConstr(gp.quicksum(area[i, j, k] * if_positive[i, j, k] for j in C if j != i) 
-# #                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]))
-
-# # # 多乘S[j, k]可以表示判断在同一车厢的意思，但是属于三次问题，gurobi不可解        
-# # for k in V:
-# #     for i in C:       
-# #         model.addConstr(gp.quicksum(area[i, j, k] * if_positive[i, j, k] * S[j, k] for j in C if j != i) 
-# #                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]))
-
-# # 添加变量表real_area表示area[i, j, k] * if_positive[i, j, k]，降次
-# real_area = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# for k in V:
-#     for i in C:
-#         for j in C:
-#             if j != i:
-#                 model.addConstr(real_area[i, j, k] == area[i, j, k] * if_positive[i, j, k])
-# for k in V:
-#     for i in C:       
-#         model.addConstr(gp.quicksum(real_area[i, j, k] * S[j, k] for j in C if j != i) 
-#                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]))
-
-
-# if_x1overx2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
-# ify1overy2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
-# area = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# area_1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# area_2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-# # 当且仅当x1>x2,y1>y2的情况下，重叠面积才为正
-# for k in V:
-#     for i in C:
-#         for j in C:
-#             if j != i:
-#                 model.addConstr((x1[i, j, k] - x2[i, j, k]) <= M * if_x1overx2[i, j, k])
-#                 model.addConstr((x1[i, j, k] - x2[i, j, k]) >= -M * (1- if_x1overx2[i, j, k]))
-#                 model.addConstr((y1[i, j, k] - y2[i, j, k]) <= M * ify1overy2[i, j, k])
-#                 model.addConstr((y1[i, j, k] - y2[i, j, k]) >= -M * (1- ify1overy2[i, j, k]))
-#                 model.addConstr(area[i, j, k] == (x1[i, j, k] - x2[i, j, k]) * (y1[i, j, k] - y2[i, j, k]))
-#                 model.addConstr(area_1[i, j, k] == area[i, j, k] * if_x1overx2[i, j, k])
-#                 model.addConstr(area_2[i, j, k] == area_1[i, j, k] * ify1overy2[i, j, k])
-# # 未考虑gamma[i] > 0 且 gamma[j]+h[j] == gamma[i]的要求
-# # for k in V:
-# #     for i in C:       
-# #         model.addConstr(gp.quicksum(area_2[i, j, k] * S[j, k] for j in C if j != i) 
-# #                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]))
-# # 这里考虑了gamma[i] > 0,但是不对
-# for k in V:
-#     for i in C:       
-#         model.addConstr(gp.quicksum(area_2[i, j, k] * S[j, k] for j in C if j != i) 
-#                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]) * (1-gamma[i, k]))
-
-
-
-
-
-
-# 添加考虑gamma[j]+h[j] == gamma[i]的要求
-if_x1overx2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
-ify1overy2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
+new_propto = model.addVars([(i, k) for i in C for k in V], lb=0, vtype=GRB.CONTINUOUS)
+new_beta = model.addVars([(i, k) for i in C for k in V], lb=0, vtype=GRB.CONTINUOUS)
 area = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-area_1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-area_2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
-area_3 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
+area2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
+area_l = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
+area_w = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
+if_x1overx2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
+if_y1overy2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
+if_sametruck = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
+eps = 0.0001
+
 if_gamma = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
-# if_gamma0 = model.addVars([(i, k) for i in C for k in V], vtype=GRB.BINARY)
-# for k in V:
-#     for i in C:
-#         model.addConstr(if_gamma0[i, k] == (gamma[i, k] <= 0))
-epsilon = 1e-9
 # gamma[i, k] == 0 则 if_gamma[i, j, k] == 0
 # gamma[i, k] > 0 则 if_gamma[i, j, k] == 1
 if_gamma0 = model.addVars([(i, k) for i in C for k in V], vtype=GRB.BINARY)
 for k in V:
     for i in C:
         model.addConstr(if_gamma0[i, k] >= gamma[i, k] / M)
-        model.addConstr(if_gamma0[i, k] <= gamma[i, k] / epsilon)
+        model.addConstr(if_gamma0[i, k] <= gamma[i, k] / eps)
 
 
-# 当且仅当x1>x2,y1>y2的情况下，重叠面积才为正
+# b1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
+# b2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
+# b = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], vtype=GRB.BINARY)
 for k in V:
     for i in C:
+        model.addConstr(new_propto[i, k] == propto[i, k] + l[i - 1])
+        model.addConstr(new_beta[i, k] == beta[i, k] + w[i - 1])
         for j in C:
             if j != i:
-                model.addConstr((x1[i, j, k] - x2[i, j, k]) <= M * if_x1overx2[i, j, k])
-                model.addConstr((x1[i, j, k] - x2[i, j, k]) >= -M * (1- if_x1overx2[i, j, k]))
-                model.addConstr((y1[i, j, k] - y2[i, j, k]) <= M * ify1overy2[i, j, k])
-                model.addConstr((y1[i, j, k] - y2[i, j, k]) >= -M * (1- ify1overy2[i, j, k]))
-                model.addConstr(area[i, j, k] == (x1[i, j, k] - x2[i, j, k]) * (y1[i, j, k] - y2[i, j, k]))
-                model.addConstr(area_1[i, j, k] == area[i, j, k] * if_x1overx2[i, j, k])
-                model.addConstr(area_2[i, j, k] == area_1[i, j, k] * ify1overy2[i, j, k])
-                # 当gamma[j, k]+h[j] == gamma[i, k]的时候,if_gamma[i, j, k]==1，其他时候为0
-                # model.addConstr(if_gamma[i, j, k] == (gamma[j, k] + h[j] == gamma[i, k]))
-                # model.addConstr(area_3[i, j, k] == area_2[i, j, k] * if_gamma[i, j, k])
-                # model.addConstr(if_gamma[i, j, k] * (gamma[j, k] + h[j]) == gamma[i, k])
-                # model.addConstr((1 - if_gamma[i, j, k]) * (gamma[j, k] + h[j]) != gamma[i, k])
-                model.addConstr((1 - if_gamma[i, j, k]) * (gamma[j, k] + h[j-1]) <= gamma[i, k] - epsilon * (1 - if_gamma[i, j, k]))
-                model.addConstr((1 - if_gamma[i, j, k]) * (gamma[j, k] + h[j-1]) >= gamma[i, k] + epsilon * (1 - if_gamma[i, j, k]))
-                model.addConstr(area_3[i, j, k] == area_2[i, j, k] * if_gamma[i, j, k])
+                
+                model.addConstr(x1[i, j, k] == gp.min_(new_propto[j, k], new_propto[i, k]))
+                model.addConstr(y1[i, j, k] == gp.min_(new_beta[j, k], new_beta[i, k]))
 
-# 添加-M * (1-if_gamma0[i, k])，只有包裹i没放在车厢底部的时候才会有这个约束
-# for k in V:
-#     for i in C:       
-#         model.addConstr(gp.quicksum(area_3[i, j, k] * S[j, k] for j in C if j != i) 
-#                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]) -M * (1-if_gamma0[i, k]))
-        
+                model.addConstr(x2[i, j, k] == gp.max_(propto[j, k], propto[i, k]))
+                model.addConstr(y2[i, j, k] == gp.max_(beta[j, k], beta[i, k]))
+
+                model.addConstr(x1[i, j, k] >= x2[i, j, k] + eps - M * (1 - if_x1overx2[i, j, k]))
+                model.addConstr(x1[i, j, k] <= x2[i, j, k] + M * if_x1overx2[i, j, k])
+
+                model.addConstr(y1[i, j, k] >= y2[i, j, k] + eps - M * (1 - if_y1overy2[i, j, k]))
+                model.addConstr(y1[i, j, k] <= y2[i, j, k] + M * if_y1overy2[i, j, k])
+                
+                model.addConstr((if_x1overx2[i, j, k] == 1) >> (area_l[i, j, k] == x1[i, j, k]-x2[i, j, k]))
+                model.addConstr((if_x1overx2[i, j, k] == 0) >> (area_l[i, j, k] == 0))
+                model.addConstr((if_y1overy2[i, j, k] == 1) >> (area_w[i, j, k] == x1[i, j, k]-x2[i, j, k]))
+                model.addConstr((if_y1overy2[i, j, k] == 0) >> (area_w[i, j, k] == 0))
+                model.addConstr(if_sametruck[i, j, k] == S[i, k] * S[j, k])
+                # model.addConstr((if_sametruck[i, j, k] == 1) >> (area[i, j, k] == area_l[i, j, k] * area_w[i, j, k]))
+                # model.addConstr((if_sametruck[i, j, k] == 0) >> (area[i, j, k] == 0))
+                model.addConstr(area[i, j, k] <= M * if_sametruck[i, j, k])
+                model.addConstr(area[i, j, k] >= area_l[i, j, k] * area_w[i, j, k] - (1 - if_sametruck[i, j, k]) * M)
+                model.addConstr(area[i, j, k] <= area_l[i, j, k] * area_w[i, j, k] + (1 - if_sametruck[i, j, k]) * M)
+                # model.addConstr(height_difference[i, j, k] == gp.abs_(gamma[j, k] - gamma[i, k]))
+
+                model.addConstr((1 - if_gamma[i, j, k]) * (gamma[j, k] + h[j-1]) <= gamma[i, k] - eps * (1 - if_gamma[i, j, k]))
+                model.addConstr((1 - if_gamma[i, j, k]) * (gamma[j, k] + h[j-1]) >= gamma[i, k] + eps * (1 - if_gamma[i, j, k]))
+                model.addConstr(area2[i, j, k] == area[i, j, k] * if_gamma[i, j, k])
+
+                # gamma是连续变量，if_gamma是0-1变量
+                # gamma[j, k] + h[j-1] == gamma[i, k] 则 if_gamma[i, j, k] == 1
+                # gamma[j, k] + h[j-1] != gamma[i, k] 则 if_gamma[i, j, k] == 0
+                # m.addConstr(gamma[j, k] + h[j-1] >= gamma[i, k] + eps - M * b1[i, j, k])
+                # m.addConstr(gamma[j, k] + h[j-1] <= gamma[i, k] + M * ( 1 - b1[i, j, k]))
+                # m.addConstr(gamma[i, k] >= gamma[j, k] + h[j-1] + eps - M * b2[i, j, k])
+                # m.addConstr(gamma[i, k] <= gamma[j, k] + h[j-1] + M * ( 1 - b2[i, j, k]))
+                # model.addConstr(b[i, j, k] == b1[i, j, k] * b2[i, j, k])         
+
+                
 for k in V:
-    for i in C:       
-        model.addConstr(gp.quicksum(area_3[i, j, k] * S[j, k] for j in C if j != i) 
-                        >= 0.75 * l[i-1] * w[i-1]- M * (1 - S[i, k]) -M * (1-if_gamma0[i, k]))        
-
+    for i in C:
+        model.addConstr(gp.quicksum(area2[i, j, k] for j in C if j != i) >= 0.6 * propto[i, k] * beta[i, k] - M * (1- S[i, k]) -M * (1-if_gamma0[i, k]))
 
 
 
@@ -891,10 +736,10 @@ model.optimize()
 #     print("Optimal solution found!")
 # else:
 #     print("No optimal solution found.")
-if model.status == GRB.OPTIMAL:
-    print("Optimal solution found!")
-else:
-    print("No optimal solution found.")
+# if model.status == GRB.OPTIMAL:
+#     print("Optimal solution found!")
+# else:
+#     print("No optimal solution found.")
 
 
 # 记录包裹坐标
@@ -934,6 +779,10 @@ print(f"包裹的坐标: {coordinate}")
 
 # 画图
 goods_dimensions = [[],[]]
+# for i in C:
+#     goods_dimensions.append((l[i-1], w[i-1], h[i-1]))
+
+goods_positions = []
 
 for elem in coordinate:
     for k in V:
@@ -941,7 +790,6 @@ for elem in coordinate:
             goods_dimensions[k-1].append((l[elem[0]-1], w[elem[0]-1], h[elem[0]-1]))
 
 print(goods_dimensions)
-
 
 if model.status == GRB.OPTIMAL:
     for k in V:

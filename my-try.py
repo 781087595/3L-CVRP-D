@@ -50,19 +50,22 @@ T_bar = 30
 # q_i	load amount of package needed of customer i
 q = np.random.randint(low=2, high=7, size=n)
 # L,W,H	length, width, and height of carriage of truck
-L = 15
-W = 10
-H = 10
+# L = 12
+# W = 8
+# H = 10
+L = 6
+W = 5
+H = 15
 # L^\prime,W^\prime,H^\prime	length, width, and height of carriage of drone
 L_prime = 4
 W_prime = 4
 H_prime = 4
 # l_i,w_i,h_i	length, width, and height of package needed of customer i
-l = np.random.randint(low=3, high=6, size=n)
-w = np.random.randint(low=3, high=6, size=n)
-h = np.random.randint(low=3, high=6, size=n)
+l = np.random.randint(low=3, high=5, size=n)
+w = np.random.randint(low=3, high=5, size=n)
+h = np.random.randint(low=3, high=5, size=n)
 # M	a large number
-M = 10000000
+M = 10000
 
 # 集合
 # N	set of all nodes, i,j\in{0,1,2,\cdots,n+1}
@@ -660,6 +663,8 @@ for k in V:
 #         model.addConstr(gp.quicksum((gp.min_(propto[j, k] + l[j-1],propto[i,k] + l[i-1]) - gp.max_(propto[j, k],propto[i,k]))
 #                                     *(gp.min_(beta[j, k] + w[j-1],beta[i,k] + w[i-1])-gp.max_(beta[j, k],beta[i,k]))
 #                                     for j in C if j != i) >= 0.75 * propto[i, k] * beta[i, k] - M * (1 - S[i, k]))
+
+
 # x1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 # x2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 # y1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
@@ -685,8 +690,8 @@ for k in V:
 #                             for j in C if j != i 
 #                             and x1[i, j, k] >= x2[i, j, k] and y1[i, j, k] >= y2[i, j, k]) >= 0.75 * propto[i, k] * beta[i, k])   
 
-# # 尝试3：用辅助变量计算面积
-# # d1,d2,d3,d4辅助变量计算(x1,y1),(x2,y2)
+# 尝试3：用辅助变量计算面积
+# d1,d2,d3,d4辅助变量计算(x1,y1),(x2,y2)
 x1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 x2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 y1 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
@@ -696,27 +701,27 @@ d2 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0,
 d3 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 d4 = model.addVars([(i, j, k) for i in C for j in C if j != i for k in V], lb=0, vtype=GRB.CONTINUOUS)
 
-for k in V:
-    for i in C:
-        for j in C:
-            if j != i:
-                model.addConstr(x1[i, j, k] <= propto[i, k] + l[i-1])
-                model.addConstr(x1[i, j, k] <= propto[j, k] + l[j-1])
-                model.addConstr(x1[i, j, k] >= propto[i, k] + l[i-1] - M * (1-d1[i, j, k]))
-                model.addConstr(x1[i, j, k] >= propto[j, k] + l[j-1] - M * d1[i, j, k])
-                model.addConstr(x2[i, j, k] >= propto[i, k])
-                model.addConstr(x2[i, j, k] >= propto[j, k])
-                model.addConstr(x2[i, j, k] <= propto[i, k] + M * (1-d2[i, j, k]))
-                model.addConstr(x2[i, j, k] <= propto[j, k] + M * d2[i, j, k])
+# for k in V:
+#     for i in C:
+#         for j in C:
+#             if j != i:
+#                 model.addConstr(x1[i, j, k] <= propto[i, k] + l[i-1])
+#                 model.addConstr(x1[i, j, k] <= propto[j, k] + l[j-1])
+#                 model.addConstr(x1[i, j, k] >= propto[i, k] + l[i-1] - M * (1-d1[i, j, k]))
+#                 model.addConstr(x1[i, j, k] >= propto[j, k] + l[j-1] - M * d1[i, j, k])
+#                 model.addConstr(x2[i, j, k] >= propto[i, k])
+#                 model.addConstr(x2[i, j, k] >= propto[j, k])
+#                 model.addConstr(x2[i, j, k] <= propto[i, k] + M * (1-d2[i, j, k]))
+#                 model.addConstr(x2[i, j, k] <= propto[j, k] + M * d2[i, j, k])
 
-                model.addConstr(y1[i, j, k] <= beta[i, k] + w[i-1])
-                model.addConstr(y1[i, j, k] <= beta[j, k] + w[j-1])
-                model.addConstr(y1[i, j, k] >= beta[i, k] + w[i-1] - M * (1- d3[i, j, k]))
-                model.addConstr(y1[i, j, k] >= beta[j, k] + w[j-1] - M * d3[i, j, k])
-                model.addConstr(y2[i, j, k] >= beta[i, k])
-                model.addConstr(y2[i, j, k] >= beta[j, k])
-                model.addConstr(y2[i, j, k] <= beta[i, k] + M * (1- d4[i, j, k]))
-                model.addConstr(y2[i, j, k] <= beta[j, k] + M * d4[i, j, k])
+#                 model.addConstr(y1[i, j, k] <= beta[i, k] + w[i-1])
+#                 model.addConstr(y1[i, j, k] <= beta[j, k] + w[j-1])
+#                 model.addConstr(y1[i, j, k] >= beta[i, k] + w[i-1] - M * (1- d3[i, j, k]))
+#                 model.addConstr(y1[i, j, k] >= beta[j, k] + w[j-1] - M * d3[i, j, k])
+#                 model.addConstr(y2[i, j, k] >= beta[i, k])
+#                 model.addConstr(y2[i, j, k] >= beta[j, k])
+#                 model.addConstr(y2[i, j, k] <= beta[i, k] + M * (1- d4[i, j, k]))
+#                 model.addConstr(y2[i, j, k] <= beta[j, k] + M * d4[i, j, k])
 
 # # 尝试3-1：提示非线性，添加model.setParam('NonConvex', 2)，可运行，缺少条件判断：是否是同一辆车装载，是否有接触面
 # for k in V:
@@ -865,15 +870,10 @@ for k in V:
                 model.addConstr(area_3[i, j, k] == area_2[i, j, k] * if_gamma[i, j, k])
 
 # 添加-M * (1-if_gamma0[i, k])，只有包裹i没放在车厢底部的时候才会有这个约束
-# for k in V:
-#     for i in C:       
-#         model.addConstr(gp.quicksum(area_3[i, j, k] * S[j, k] for j in C if j != i) 
-#                         >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]) -M * (1-if_gamma0[i, k]))
-        
 for k in V:
     for i in C:       
         model.addConstr(gp.quicksum(area_3[i, j, k] * S[j, k] for j in C if j != i) 
-                        >= 0.75 * l[i-1] * w[i-1]- M * (1 - S[i, k]) -M * (1-if_gamma0[i, k]))        
+                        >= 0.75 * propto[i, k] * beta[i, k]- M * (1 - S[i, k]) -M * (1-if_gamma0[i, k]))
 
 
 
@@ -891,10 +891,10 @@ model.optimize()
 #     print("Optimal solution found!")
 # else:
 #     print("No optimal solution found.")
-if model.status == GRB.OPTIMAL:
-    print("Optimal solution found!")
-else:
-    print("No optimal solution found.")
+# if model.status == GRB.OPTIMAL:
+#     print("Optimal solution found!")
+# else:
+#     print("No optimal solution found.")
 
 
 # 记录包裹坐标
@@ -934,6 +934,10 @@ print(f"包裹的坐标: {coordinate}")
 
 # 画图
 goods_dimensions = [[],[]]
+# for i in C:
+#     goods_dimensions.append((l[i-1], w[i-1], h[i-1]))
+
+goods_positions = []
 
 for elem in coordinate:
     for k in V:
@@ -941,7 +945,6 @@ for elem in coordinate:
             goods_dimensions[k-1].append((l[elem[0]-1], w[elem[0]-1], h[elem[0]-1]))
 
 print(goods_dimensions)
-
 
 if model.status == GRB.OPTIMAL:
     for k in V:
