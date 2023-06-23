@@ -1,12 +1,3 @@
-# 以下错误是6-13凌晨发现的，已经修正               
-# for k in V:
-#     for i in C:
-#         model.addConstr(gp.quicksum(area2[i, j, k] for j in C if j != i) 
-#                         >= 0.75 * propto[i, k] * beta[i, k] - M * (1- S[i, k]) - M *(1- if_gamma0[i, k])) 
-
-# 6-13 下午发现的，下面写错了
-# model.addConstr((if_y1overy2[i, j, k] == 1) >> (area_w[i, j, k] == x1[i, j, k]-x2[i, j, k]))
-
 from cycler import cycler
 import numpy as np
 import matplotlib.pyplot as plt
@@ -565,48 +556,3 @@ if model.status == GRB.OPTIMAL:
                         if j != i and j != m and y[i, m, j, k].x > 0.5:
                             route2.append((i, m, j))
         print(f"Route: {route2}")
-
-        for i in C:
-            if S[i, k].x > 0.5:
-                coordinate.append((i, k, propto[i, k].x, beta[i, k].x, gamma[i, k].x))
-
-            for j in C:
-                if j != i:
-                    area_1.append((i, j, k, if_gamma[i, j, k].x, area[i, j, k].x))
-                    area_2.append((i, j, k, if_gamma[i, j, k].x, area2[i, j, k].x))
-                    if_g.append((i, j, k, if_gamma[i, j, k].x))
-
-# 包裹的三维尺寸
-print(f"包裹的三维尺寸：")
-print([(l[i], w[i], h[i]) for i in range(n)])
-# 包裹的坐标
-print(f"包裹的坐标: {coordinate}")
-
-# 画图
-goods_dimensions = [[],[]]
-
-for elem in coordinate:
-    for k in V:
-        if elem[1] == k:
-            goods_dimensions[k-1].append((l[elem[0]-1], w[elem[0]-1], h[elem[0]-1]))
-
-print(goods_dimensions)
-
-
-if model.status == GRB.OPTIMAL:
-    for k in V:
-        print(k)
-        draw_packing_result(L, W, H, goods_dimensions[k-1], [elem[-3:] for elem in coordinate if elem[1] == k], k)
-
-
-# print(t)
-# print(t_prime)
-# print(q)        
-
-# print(f"if_gamma0[5, 1] = {if_gamma0[5, 1].x}")
-# print(f"S[5, 1] = {S[5, 1].x}")
-# for j in C:
-#     if j != 5:
-#         print(f"area[5, {j}, 1] = {area[5, j, 1].x}")
-#         print(f"area2[5, {j}, 1] = {area2[5, j, 1].x}")
-#         print(f"if_gamma[5, {j}, 1] = {if_gamma[5, j, 1].x}")
