@@ -550,28 +550,4 @@ if pl.LpStatus[problem.status] == 'Optimal':
                             route2.append((i, m, j))
         print(f"Route: {route2}")
 
-        for i in C:
-            if S[i, k].varValue > 0.5:
-                coordinate.append((i, k, propto[i, k].varValue, beta[i, k].varValue, gamma[i, k].varValue))
-
-else:
-    print("No optimal solution found.")
-
-# 包裹的三维尺寸
-print(f"包裹的三维尺寸：")
-print([(l[i], w[i], h[i]) for i in range(n)])
-# 包裹的坐标
-print(f"包裹的坐标: {coordinate}")
-
-
-# 获取最优解状态和最优目标函数值
-status = pl.LpStatus[problem.status]
-obj_value = pl.value(problem.objective)
-
-# 计算gap值
-gap = (problem.objective.value - problem.objective_bound)/(1 + abs(problem.objective.value))
-
-# 输出结果
-print("Status: {}".format(status))
-print("Optimal Objective Value: {}".format(obj_value))
-print("Gap: {:.2%}".format(gap))
+ 
